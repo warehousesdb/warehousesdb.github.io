@@ -2,44 +2,48 @@
 <html lang="id">
 <head>
 <meta charset="UTF-8">
-<title>Aplikasi Gudang</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Gudang Offline</title>
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 <script src="https://unpkg.com/vue@3"></script>
-<style>
-body { font-family: Arial; padding: 15px; background:#f5f5f5;}
-.card { background:white; padding:15px; border-radius:10px; margin-bottom:15px;}
-input, button { padding:10px; margin:5px 0; width:100%;}
-button { background:#2196f3; color:white; border:none; border-radius:5px;}
-.hapus { background:red;}
-</style>
+
 </head>
+<body class="bg-light">
 
-<body>
+<div id="app" class="container py-4">
 
-<div id="app">
+  <h3 class="text-center mb-4">📦 Gudang Offline</h3>
 
-  <div class="card">
-    <h2>📦 Tambah Barang</h2>
-    <input v-model="nama" placeholder="Nama barang">
-    <input v-model.number="stok" placeholder="Stok awal">
-    <button @click="tambahBarang">Tambah</button>
+  <!-- TAMBAH BARANG -->
+  <div class="card mb-3">
+    <div class="card-body">
+      <input v-model="nama" class="form-control mb-2" placeholder="Nama barang">
+      <input v-model.number="stok" type="number" class="form-control mb-2" placeholder="Stok awal">
+      <button class="btn btn-primary w-100" @click="tambah">Tambah Barang</button>
+    </div>
   </div>
 
+  <!-- LIST BARANG -->
   <div class="card">
-    <h2>📋 Daftar Barang</h2>
+    <div class="card-body">
 
-    <div v-for="(item, index) in items" :key="index" class="card">
-      <b>{{ item.nama }}</b><br>
-      Stok: {{ item.stok }}
+      <div v-for="(item,index) in items" :key="index" class="border rounded p-2 mb-2">
 
-      <input v-model.number="jumlahMasuk" placeholder="Jumlah masuk">
-      <button @click="stokMasuk(index)">➕ Stok Masuk</button>
+        <b>{{ item.nama }}</b><br>
+        Stok: {{ item.stok }}
 
-      <input v-model.number="jumlahKeluar" placeholder="Jumlah keluar">
-      <button @click="stokKeluar(index)">➖ Stok Keluar</button>
+        <input v-model.number="item.masuk" type="number" class="form-control mt-2" placeholder="Stok masuk">
+        <button class="btn btn-success btn-sm mt-1 w-100" @click="masuk(index)">➕ Masuk</button>
 
-      <button class="hapus" @click="hapus(index)">Hapus</button>
+        <input v-model.number="item.keluar" type="number" class="form-control mt-2" placeholder="Stok keluar">
+        <button class="btn btn-warning btn-sm mt-1 w-100" @click="keluar(index)">➖ Keluar</button>
+
+        <button class="btn btn-danger btn-sm mt-2 w-100" @click="hapus(index)">Hapus</button>
+
+      </div>
+
     </div>
-
   </div>
 
 </div>
@@ -52,8 +56,6 @@ createApp({
     return {
       nama: '',
       stok: 0,
-      jumlahMasuk: 0,
-      jumlahKeluar: 0,
       items: JSON.parse(localStorage.getItem('gudang')) || []
     }
   },
@@ -61,33 +63,43 @@ createApp({
     simpan() {
       localStorage.setItem('gudang', JSON.stringify(this.items));
     },
-    tambahBarang() {
+
+    tambah() {
       if (this.nama && this.stok >= 0) {
         this.items.push({
           nama: this.nama,
-          stok: this.stok
+          stok: this.stok,
+          masuk: 0,
+          keluar: 0
         });
         this.nama = '';
         this.stok = 0;
         this.simpan();
       }
     },
-    stokMasuk(index) {
-      this.items[index].stok += this.jumlahMasuk;
-      this.jumlahMasuk = 0;
-      this.simpan();
+
+    masuk(index) {
+      let item = this.items[index];
+      if (item.masuk > 0) {
+        item.stok += item.masuk;
+        item.masuk = 0;
+        this.simpan();
+      }
     },
-    stokKeluar(index) {
-      if (this.items[index].stok >= this.jumlahKeluar) {
-        this.items[index].stok -= this.jumlahKeluar;
-        this.jumlahKeluar = 0;
+
+    keluar(index) {
+      let item = this.items[index];
+      if (item.keluar > 0 && item.stok >= item.keluar) {
+        item.stok -= item.keluar;
+        item.keluar = 0;
         this.simpan();
       } else {
         alert("Stok tidak cukup!");
       }
     },
+
     hapus(index) {
-      this.items.splice(index, 1);
+      this.items.splice(index,1);
       this.simpan();
     }
   }
