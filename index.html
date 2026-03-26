@@ -1,10 +1,98 @@
 <!DOCTYPE html>
-<html>
+<html lang="id">
 <head>
-  <title>Website Pertama</title>
+<meta charset="UTF-8">
+<title>Aplikasi Gudang</title>
+<script src="https://unpkg.com/vue@3"></script>
+<style>
+body { font-family: Arial; padding: 15px; background:#f5f5f5;}
+.card { background:white; padding:15px; border-radius:10px; margin-bottom:15px;}
+input, button { padding:10px; margin:5px 0; width:100%;}
+button { background:#2196f3; color:white; border:none; border-radius:5px;}
+.hapus { background:red;}
+</style>
 </head>
+
 <body>
-  <h1>Hello Dunia 🌍</h1>
-  <p>Website saya sudah online!</p>
+
+<div id="app">
+
+  <div class="card">
+    <h2>📦 Tambah Barang</h2>
+    <input v-model="nama" placeholder="Nama barang">
+    <input v-model.number="stok" placeholder="Stok awal">
+    <button @click="tambahBarang">Tambah</button>
+  </div>
+
+  <div class="card">
+    <h2>📋 Daftar Barang</h2>
+
+    <div v-for="(item, index) in items" :key="index" class="card">
+      <b>{{ item.nama }}</b><br>
+      Stok: {{ item.stok }}
+
+      <input v-model.number="jumlahMasuk" placeholder="Jumlah masuk">
+      <button @click="stokMasuk(index)">➕ Stok Masuk</button>
+
+      <input v-model.number="jumlahKeluar" placeholder="Jumlah keluar">
+      <button @click="stokKeluar(index)">➖ Stok Keluar</button>
+
+      <button class="hapus" @click="hapus(index)">Hapus</button>
+    </div>
+
+  </div>
+
+</div>
+
+<script>
+const { createApp } = Vue;
+
+createApp({
+  data() {
+    return {
+      nama: '',
+      stok: 0,
+      jumlahMasuk: 0,
+      jumlahKeluar: 0,
+      items: JSON.parse(localStorage.getItem('gudang')) || []
+    }
+  },
+  methods: {
+    simpan() {
+      localStorage.setItem('gudang', JSON.stringify(this.items));
+    },
+    tambahBarang() {
+      if (this.nama && this.stok >= 0) {
+        this.items.push({
+          nama: this.nama,
+          stok: this.stok
+        });
+        this.nama = '';
+        this.stok = 0;
+        this.simpan();
+      }
+    },
+    stokMasuk(index) {
+      this.items[index].stok += this.jumlahMasuk;
+      this.jumlahMasuk = 0;
+      this.simpan();
+    },
+    stokKeluar(index) {
+      if (this.items[index].stok >= this.jumlahKeluar) {
+        this.items[index].stok -= this.jumlahKeluar;
+        this.jumlahKeluar = 0;
+        this.simpan();
+      } else {
+        alert("Stok tidak cukup!");
+      }
+    },
+    hapus(index) {
+      this.items.splice(index, 1);
+      this.simpan();
+    }
+  }
+}).mount('#app');
+</script>
+
 </body>
 </html>
